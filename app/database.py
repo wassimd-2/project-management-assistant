@@ -39,7 +39,8 @@ def init_db():
         name TEXT NOT NULL,
         description TEXT,
         status TEXT DEFAULT 'Planning',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        due_date TEXT
     );
 
     CREATE TABLE IF NOT EXISTS tasks (
@@ -51,6 +52,7 @@ def init_db():
         status TEXT DEFAULT 'To Do',
         assignee TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        due_date TEXT,
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
     );
 
@@ -97,12 +99,31 @@ def _update_record(table: str, record_id: int, **kwargs) -> bool:
     _run_query(query, tuple(values))
     return True
 
+def get_incomplete_dependencies(task_id: int) -> list:
+    """
+    Queries the database to check if a task has any parent 
+    dependencies that are not marked as 'Completed'.
+    """
+    query = """
+        SELECT p.name 
+        FROM dependencies td
+        JOIN tasks p ON td.depends_on_task_id = p.id
+        WHERE td.task_id = ? AND p.status != 'Completed';
+    """
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(query, (task_id,))
+        rows = cursor.fetchall()
+        
+    return [row["name"] for row in rows]
+
 # ==========================================
 # PROJECTS CRUD
 # ==========================================
-def create_project(name: str, description: str = "", status: str = "Planning") -> int:
-    query = "INSERT INTO projects (name, description, status) VALUES (?, ?, ?)"
-    return _run_query(query, (name, description, status))
+def create_project(name: str, description: str = "", status: str = "Planning", due_date: str = None) -> int:
+    query = "INSERT INTO projects (name, description, status, due_date) VALUES (?, ?, ?, ?)"
+    return _run_query(query, (name, description, status, due_date))
 
 def get_project(project_id: Optional[int] = None) -> List[Dict[str, Any]]:
     if project_id:
@@ -118,9 +139,9 @@ def delete_project(project_id: int):
 # ==========================================
 # TASKS CRUD
 # ==========================================
-def create_task(project_id: int, name: str, description: str = "", priority: str = "Medium", status: str = "To Do", assignee: str = "") -> int:
-    query = "INSERT INTO tasks (project_id, name, description, priority, status, assignee) VALUES (?, ?, ?, ?, ?, ?)"
-    return _run_query(query, (project_id, name, description, priority, status, assignee))
+def create_task(project_id: int, name: str, description: str = "", priority: str = "Medium", status: str = "To Do", assignee: str = "", due_date: str = None) -> int:
+    query = "INSERT INTO tasks (project_id, name, description, priority, status, assignee, due_date) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    return _run_query(query, (project_id, name, description, priority, status, assignee, due_date))
 
 def get_tasks(task_id: Optional[int] = None, project_id: Optional[int] = None) -> List[Dict[str, Any]]:
     if task_id:
