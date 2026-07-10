@@ -1,0 +1,55 @@
+from .information_tools import (
+    list_all_projects,
+    retrieve_project_context,
+    view_tasks,
+    check_task_dependencies,
+    view_project_risks,
+    view_audit_logs
+)
+from .analysis_tools import (
+    analyze_task_blockers,
+    calculate_project_health_score,
+    classify_project_risk_profile,
+    check_dependency_cycle,
+    validate_task_inputs
+)
+from .action_tools import (
+    add_new_project, modify_project_details, remove_project,
+    add_project_task, modify_task_details, remove_task,
+    establish_task_dependency, break_task_dependency,
+    register_project_risk, modify_project_risk, remove_project_risk
+)
+from .reporting_tools import generate_status_report
+
+AGENT_TOOLS = [
+    # Info Layer
+    list_all_projects,
+    retrieve_project_context,
+    view_tasks,
+    check_task_dependencies,
+    view_project_risks,
+    view_audit_logs,
+    
+    # Analysis Layer
+    analyze_task_blockers,
+    calculate_project_health_score,
+    classify_project_risk_profile,
+    check_dependency_cycle,
+    validate_task_inputs,
+    
+    # Action Layer
+    add_new_project,
+    modify_project_details,
+    remove_project,
+    add_project_task,
+    modify_task_details,
+    remove_task,
+    establish_task_dependency,
+    break_task_dependency,
+    register_project_risk,
+    modify_project_risk,
+    remove_project_risk,
+    
+    # Reporting Layer
+    generate_status_report
+]

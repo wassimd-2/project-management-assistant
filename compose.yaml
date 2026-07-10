@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  pm-assistant:
+    build: .
+    container_name: pm-assistant-app
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    volumes:
+      - ./storage:/app/storage
+      - ./logs:/app/logs
+    restart: unless-stopped
