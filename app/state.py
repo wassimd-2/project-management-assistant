@@ -11,7 +11,7 @@ class AgentState(TypedDict):
     user_name: Optional[str]
 
     # ==========================================
-    # 2. WORKING MEMORY (Mandatory Fields)
+    # 2. WORKING MEMORY
     # ==========================================
     # The current goal the user is trying to achieve (e.g., "create_task")
     current_intent: Optional[str]

@@ -10,8 +10,7 @@ def get_llm():
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("CRITICAL: GEMINI_API_KEY environment variable is missing.")
-        
-    # Using gemini-1.5-flash as the fast, efficient reasoning core
+
     llm = ChatGoogleGenerativeAI(
         model="gemini-3.1-flash-lite",
         google_api_key=api_key,

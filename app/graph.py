@@ -12,7 +12,9 @@ ACTION_TOOL_NAMES = {
     "add_new_project", "modify_project_details", "remove_project",
     "add_project_task", "modify_task_details", "remove_task",
     "establish_task_dependency", "break_task_dependency",
-    "register_project_risk", "modify_project_risk", "remove_project_risk"
+    "register_project_risk", "modify_project_risk", "remove_project_risk",
+    "add_new_user", "modify_user_details", "remove_user", "add_new_skill",
+    "modify_skill_details", "remove_skill"
 }
 
 # ==========================================
@@ -31,8 +33,12 @@ def call_agent(state: AgentState) -> Dict[str, Any]:
     "you MUST refuse the request politely and clearly state that you are only a Project Management Assistant.\n\n"
     f"Current Intent: {state.get('current_intent')}\n"
     f"Missing Fields: {state.get('missing_fields')}\n\n"
-    "If mandatory information is missing to perform an authorized action, do not call the tool. "
-    "Instead, ask the user clearly to provide the missing fields."
+    "If mandatory information (one or more fields) is missing to perform an authorized action, do not call the tool and DO NOT ADD THEM ON YOUR OWN!. "
+    "Instead, ask the user clearly to provide the missing fields.\n\n"
+    "TASK DUE DATE INSTRUCTIONS:\n"
+    "Whenever a user wants to add or modify a due date for a task,"
+    "Propose a smart, specific due date (formatted as YYYY-MM-DD) based on the task name type, even if the user provides a date."
+    "And ask the user about the proposed date before calling of the tool."
     )
     
     # Execute LLM call

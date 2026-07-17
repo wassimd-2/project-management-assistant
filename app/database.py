@@ -34,11 +34,28 @@ def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     
     schema = """
+    CREATE TABLE IF NOT EXISTS skills (
+        skill_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        skill_name TEXT UNIQUE NOT NULL,
+        category TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        role TEXT,
+        skill_id INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (skill_id) REFERENCES skills (skill_id) ON DELETE SET NULL
+    );
+
     CREATE TABLE IF NOT EXISTS projects (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         description TEXT,
         status TEXT DEFAULT 'Planning',
+        budget REAL DEFAULT 0.0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         due_date TEXT
     );
@@ -50,10 +67,11 @@ def init_db():
         description TEXT,
         priority TEXT DEFAULT 'Medium',
         status TEXT DEFAULT 'To Do',
-        assignee TEXT,
+        assignee_id INTEGER,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         due_date TEXT,
-        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE,
+        FOREIGN KEY (assignee_id) REFERENCES users (id) ON DELETE SET NULL
     );
 
     CREATE TABLE IF NOT EXISTS dependencies (
@@ -87,7 +105,7 @@ def init_db():
 # ==========================================
 # DYNAMIC UPDATE HELPER
 # ==========================================
-def _update_record(table: str, record_id: int, **kwargs) -> bool:
+def _update_record(table: str, record_id: Any, id_column: str = "id", **kwargs) -> bool:
     """Dynamically updates a record based on provided kwargs."""
     if not kwargs:
         return False
@@ -95,7 +113,7 @@ def _update_record(table: str, record_id: int, **kwargs) -> bool:
     columns = ", ".join([f"{key} = ?" for key in kwargs.keys()])
     values = list(kwargs.values()) + [record_id]
     
-    query = f"UPDATE {table} SET {columns} WHERE id = ?"
+    query = f"UPDATE {table} SET {columns} WHERE {id_column} = ?"
     _run_query(query, tuple(values))
     return True
 
@@ -110,13 +128,49 @@ def get_incomplete_dependencies(task_id: int) -> list:
         JOIN tasks p ON td.depends_on_task_id = p.id
         WHERE td.task_id = ? AND p.status != 'Completed';
     """
-    with sqlite3.connect(DB_PATH) as conn:
-        conn.row_factory = sqlite3.Row
+    with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(query, (task_id,))
         rows = cursor.fetchall()
         
     return [row["name"] for row in rows]
+
+# ==========================================
+# SKILLS CRUD
+# ==========================================
+def create_skill(skill_name: str, category: Optional[str] = None) -> str:
+    """Inserts a new skill into the database (using a UUID string)."""
+    query = "INSERT INTO skills (skill_name, category) VALUES (?, ?)"
+    return _run_query(query, (skill_name, category))
+
+def get_skills(skill_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    if skill_id:
+        return _fetch_query("SELECT * FROM skills WHERE skill_id = ?", (skill_id,))
+    return _fetch_query("SELECT * FROM skills")
+
+def update_skill(skill_id: str, **kwargs) -> bool:
+    return _update_record("skills", skill_id, id_column="skill_id", **kwargs)
+
+def delete_skill(skill_id: str):
+    _run_query("DELETE FROM skills WHERE skill_id = ?", (skill_id,))
+
+# ==========================================
+# USERS CRUD
+# ==========================================
+def create_user(name: str, email: str, role: Optional[str] = None, skill_id: Optional[str] = None) -> int:
+    query = "INSERT INTO users (name, email, role, skill_id) VALUES (?, ?, ?, ?)"
+    return _run_query(query, (name, email, role, skill_id))
+
+def get_users(user_id: Optional[int] = None) -> List[Dict[str, Any]]:
+    if user_id:
+        return _fetch_query("SELECT * FROM users WHERE id = ?", (user_id,))
+    return _fetch_query("SELECT * FROM users")
+
+def update_user(user_id: int, **kwargs) -> bool:
+    return _update_record("users", user_id, **kwargs)
+
+def delete_user(user_id: int):
+    _run_query("DELETE FROM users WHERE id = ?", (user_id,))
 
 # ==========================================
 # PROJECTS CRUD
@@ -139,9 +193,9 @@ def delete_project(project_id: int):
 # ==========================================
 # TASKS CRUD
 # ==========================================
-def create_task(project_id: int, name: str, description: str = "", priority: str = "Medium", status: str = "To Do", assignee: str = "", due_date: str = None) -> int:
-    query = "INSERT INTO tasks (project_id, name, description, priority, status, assignee, due_date) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    return _run_query(query, (project_id, name, description, priority, status, assignee, due_date))
+def create_task(project_id: int, name: str, description: str = "", priority: str = "Medium", status: str = "To Do", assignee_id: Optional[int] = None, due_date: str = None) -> int:
+    query = "INSERT INTO tasks (project_id, name, description, priority, status, assignee_id, due_date) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    return _run_query(query, (project_id, name, description, priority, status, assignee_id, due_date))
 
 def get_tasks(task_id: Optional[int] = None, project_id: Optional[int] = None) -> List[Dict[str, Any]]:
     if task_id:

@@ -28,7 +28,7 @@ def extract_text_content(content) -> str:
 # PAGE SETUP & STYLING
 # ==========================================
 st.set_page_config(page_title="PM Assistant Engine", page_icon="💼", layout="wide")
-st.title("💼 AI Project Management Assistant")
+st.title("💼 Software Project Management Assistant")
 st.caption("Deterministic Stateful Orchestration Layer powered by LangGraph & Gemini")
 
 # Initialize Thread ID for short-term memory continuity

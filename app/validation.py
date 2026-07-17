@@ -15,15 +15,25 @@ REQUIRED_FIELDS = {
     
     # Dependencies
     "establish_task_dependency": ["task_id", "depends_on_task_id"],
-    "break_task_dependency": ["task_id", "depends_on_task_id"],
+    "break_task_dependency": ["dependency_id"],
     
     # Risks
     "register_project_risk": ["project_id", "description"],
     "modify_project_risk": ["risk_id"],
     "remove_project_risk": ["risk_id"],
     
+    # Users
+    "add_new_user": ["name", "email"],
+    "modify_user_details": ["user_id"],
+    "remove_user": ["user_id"],
+    
+    # Skills
+    "add_new_skill": ["skill_name", "category"],
+    "modify_skill_details": ["skill_id"],
+    "remove_skill": ["skill_id"],
+    
     # Assignments
-    "assign_task": ["task_id", "assignee_name"]
+    "assign_task": ["task_id", "assignee_id"]
 }
 
 def analyze_working_memory(state: AgentState) -> Dict[str, Any]:
