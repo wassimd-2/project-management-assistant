@@ -141,18 +141,18 @@ def remove_user(user_id: int) -> str:
 # PROJECT ACTIONS
 # ==========================================
 @tool
-def add_new_project(name: str, description: str = "", status: str = "Planning", due_date: str = None) -> str:
+def add_new_project(name: str, description: str = "", status: str = "Planning", budget: float = 0.0, due_date: str = None) -> str:
     """Action Tool: Creates a new project profile."""
     clean_due_date = normalize_date(due_date) if due_date else None
-    p_id = create_project(name, description, status, clean_due_date)
+    p_id = create_project(name, description, status, budget, clean_due_date)
     log_agent_action("state_change_create", "add_new_project", f"Created Proj ID {p_id}: {name}")
     return f"Successfully created project '{name}' with ID: {p_id}."
 
 @tool
-def modify_project_details(project_id: int, name: Optional[str] = None, description: Optional[str] = None, status: Optional[str] = None, due_date: Optional[str] = None) -> str:
+def modify_project_details(project_id: int, name: Optional[str] = None, description: Optional[str] = None, status: Optional[str] = None, budget: Optional[float] = None, due_date: Optional[str] = None) -> str:
     """Action Tool: Modifies attributes of an existing project profile."""
     clean_due_date = normalize_date(due_date) if due_date else None
-    updates = {k: v for k, v in {"name": name, "description": description, "status": status, "due_date": clean_due_date}.items() if v is not None}
+    updates = {k: v for k, v in {"name": name, "description": description, "status": status, "budget": budget, "due_date": clean_due_date}.items() if v is not None}
     if not updates:
         return "No modification arguments were provided."
     

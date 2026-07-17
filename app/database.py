@@ -175,9 +175,9 @@ def delete_user(user_id: int):
 # ==========================================
 # PROJECTS CRUD
 # ==========================================
-def create_project(name: str, description: str = "", status: str = "Planning", due_date: str = None) -> int:
-    query = "INSERT INTO projects (name, description, status, due_date) VALUES (?, ?, ?, ?)"
-    return _run_query(query, (name, description, status, due_date))
+def create_project(name: str, description: str = "", status: str = "Planning", budget: float = 0.0, due_date: str = None) -> int:
+    query = """INSERT INTO projects (name, description, status, budget, due_date) VALUES (?, ?, ?, ?, ?)"""
+    return _run_query(query, (name, description, status, budget, due_date))
 
 def get_project(project_id: Optional[int] = None) -> List[Dict[str, Any]]:
     if project_id:
